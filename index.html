@@ -4,460 +4,697 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>ค้นหาข้อมูลนักเรียน</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Sarabun:wght@300;400;500;600&family=Noto+Serif+Thai:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Sarabun:wght@300;400;600&family=Noto+Serif+Thai:wght@400;600;700&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --black:    #060810;
-      --gold:     #c8a94a;
-      --gold-lt:  #e8cc7a;
-      --white:    #f5f0e8;
-      --border:   rgba(200,169,74,.22);
-      --red:      #e05555;
-      --green:    #4caf82;
+      --gold:    #c8a94a;
+      --gold-lt: #e8cc7a;
+      --white:   #f5f0e8;
+      --green:   #4caf82;
+      --red:     #e05555;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { -webkit-text-size-adjust: 100%; }
+
     body {
       min-height: 100vh; min-height: 100dvh;
-      background: var(--black);
-      display: flex; align-items: center; justify-content: center;
       font-family: 'Sarabun', sans-serif;
       overflow-x: hidden; overflow-y: auto;
+      display: flex; align-items: center; justify-content: center;
       padding: 40px 20px;
+      background: #07090f;
       position: relative;
     }
     @supports (padding-bottom: env(safe-area-inset-bottom)) {
       body { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
     }
 
-    #bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-
-    .grain {
-      position: fixed; inset: -50%; width: 200%; height: 200%;
-      z-index: 1; pointer-events: none; opacity: .025;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      animation: grain 8s steps(10) infinite;
-    }
-    @keyframes grain {
-      0%,100%{transform:translate(0,0)} 10%{transform:translate(-3%,-4%)} 20%{transform:translate(-6%,2%)}
-      30%{transform:translate(4%,-2%)} 40%{transform:translate(-2%,5%)} 50%{transform:translate(-5%,-3%)}
-      60%{transform:translate(3%,4%)} 70%{transform:translate(5%,-1%)} 80%{transform:translate(-4%,3%)} 90%{transform:translate(2%,-5%)}
+    /* ── Pure CSS background — NO JS ── */
+    .bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 70% 55% at 15% 12%, rgba(200,169,74,.13) 0%, transparent 60%),
+        radial-gradient(ellipse 55% 45% at 85% 88%, rgba(30,55,110,.22) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 35% at 60% 45%, rgba(200,169,74,.05) 0%, transparent 60%),
+        linear-gradient(160deg, #0d1120 0%, #080b14 50%, #0b0e18 100%);
     }
 
-    .sp { position: fixed; width: 2px; height: 2px; border-radius: 50%; background: var(--gold-lt); pointer-events: none; z-index: 2; opacity: 0; }
-    .sp:nth-child(1){top:12%;left:18%;animation:twinkle 5s 0s infinite}
-    .sp:nth-child(2){top:25%;left:75%;animation:twinkle 7s 1.2s infinite}
-    .sp:nth-child(3){top:60%;left:10%;animation:twinkle 6s 2.5s infinite}
-    .sp:nth-child(4){top:80%;left:82%;animation:twinkle 5.5s .7s infinite}
-    .sp:nth-child(5){top:45%;left:92%;animation:twinkle 8s 3.1s infinite}
-    .sp:nth-child(6){top:8%;left:60%;animation:twinkle 6.5s 1.8s infinite}
-    .sp:nth-child(7){top:90%;left:35%;animation:twinkle 7.5s .4s infinite}
+    /* slow drifting orbs — CSS only, GPU-composited (transform+opacity only) */
+    .orb {
+      position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+      will-change: transform;
+      filter: blur(80px);
+    }
+    .orb1 {
+      width: 480px; height: 480px; top: -15%; left: -12%;
+      background: radial-gradient(circle, rgba(200,169,74,.14) 0%, transparent 70%);
+      animation: drift1 22s ease-in-out infinite alternate;
+    }
+    .orb2 {
+      width: 380px; height: 380px; bottom: -12%; right: -10%;
+      background: radial-gradient(circle, rgba(40,80,160,.16) 0%, transparent 70%);
+      animation: drift2 18s ease-in-out infinite alternate;
+    }
+    .orb3 {
+      width: 220px; height: 220px; top: 50%; left: 55%;
+      background: radial-gradient(circle, rgba(200,169,74,.08) 0%, transparent 70%);
+      animation: drift3 26s ease-in-out infinite alternate;
+    }
+    /* only transform — no layout, no paint */
+    @keyframes drift1 { from{transform:translate(0,0)}   to{transform:translate(35px,28px)} }
+    @keyframes drift2 { from{transform:translate(0,0)}   to{transform:translate(-28px,-22px)} }
+    @keyframes drift3 { from{transform:translate(0,0)}   to{transform:translate(20px,-18px)} }
+
+    /* ── Sparkles (CSS only) ── */
+    .sp {
+      position: fixed; width: 2px; height: 2px; border-radius: 50%;
+      background: var(--gold-lt); pointer-events: none; z-index: 1; opacity: 0;
+      will-change: opacity, transform;
+    }
+    .sp:nth-child(1){top:10%;left:16%;animation:twinkle 5.2s .3s infinite}
+    .sp:nth-child(2){top:22%;left:78%;animation:twinkle 7.1s 1.5s infinite}
+    .sp:nth-child(3){top:62%;left:8%; animation:twinkle 6.3s 2.8s infinite}
+    .sp:nth-child(4){top:78%;left:84%;animation:twinkle 5.8s .9s infinite}
+    .sp:nth-child(5){top:42%;left:91%;animation:twinkle 8.2s 3.4s infinite}
+    .sp:nth-child(6){top:6%; left:58%;animation:twinkle 6.8s 2.0s infinite}
+    .sp:nth-child(7){top:88%;left:33%;animation:twinkle 7.3s .5s infinite}
     @keyframes twinkle {
-      0%,100%{opacity:0;transform:scale(0)} 40%,60%{opacity:.8;transform:scale(1.5)}
+      0%,100%{opacity:0;transform:scale(0)} 45%,55%{opacity:.75;transform:scale(1.6)}
     }
 
+    /* ── Wrapper ── */
     .wrapper {
-      position: relative; z-index: 10; width: min(520px, 100%);
-      animation: rise 1.1s cubic-bezier(.16,1,.3,1) both;
+      position: relative; z-index: 10; width: min(510px, 100%);
+      animation: rise .9s cubic-bezier(.16,1,.3,1) both;
     }
-    @keyframes rise { from{opacity:0;transform:translateY(48px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes rise { from{opacity:0;transform:translateY(36px)} to{opacity:1;transform:translateY(0)} }
 
-    .deco-top {
+    /* ── Deco ── */
+    .deco {
       display: flex; align-items: center; justify-content: center; gap: 12px;
-      margin-bottom: 36px; opacity: 0; animation: fadeIn .8s .4s forwards;
+      margin-bottom: 32px; opacity: 0; animation: fIn .7s .35s forwards;
     }
-    .deco-top .ln { height: 1px; width: 60px; background: linear-gradient(to right, transparent, var(--gold)); }
-    .deco-top .ln.r { background: linear-gradient(to left, transparent, var(--gold)); }
-    .deco-top .dm { width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); box-shadow: 0 0 12px var(--gold); }
-    @keyframes fadeIn { to{opacity:1} }
+    .deco .ln  { height: 1px; width: 56px; background: linear-gradient(to right, transparent, var(--gold)); }
+    .deco .ln.r{ background: linear-gradient(to left, transparent, var(--gold)); }
+    .deco .dm  { width: 6px; height: 6px; background: var(--gold); transform: rotate(45deg); box-shadow: 0 0 10px var(--gold); }
+    @keyframes fIn { to{opacity:1} }
 
+    /* ── Card ── */
     .card {
-      position: relative;
-      background: linear-gradient(160deg, rgba(255,255,255,.055) 0%, rgba(255,255,255,.022) 50%, rgba(200,169,74,.04) 100%);
-      backdrop-filter: blur(32px) saturate(1.4);
-      -webkit-backdrop-filter: blur(32px) saturate(1.4);
-      border-radius: 28px; border: 1px solid var(--border);
-      padding: 56px 52px 48px; overflow: hidden;
-      box-shadow: 0 0 0 1px rgba(255,255,255,.04) inset, 0 40px 120px rgba(0,0,0,.7), 0 0 80px rgba(200,169,74,.07);
+      position: relative; overflow: hidden;
+      background: linear-gradient(155deg, rgba(255,255,255,.055) 0%, rgba(255,255,255,.018) 55%, rgba(200,169,74,.035) 100%);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      border-radius: 26px;
+      border: 1px solid rgba(200,169,74,.2);
+      padding: 54px 50px 46px;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.04),
+        inset 0 1px 0 rgba(255,255,255,.1),
+        0 32px 100px rgba(0,0,0,.65),
+        0 0 60px rgba(200,169,74,.06);
     }
+    /* top highlight line */
     .card::before {
-      content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
-      background: linear-gradient(105deg, transparent 30%, rgba(200,169,74,.06) 50%, transparent 70%);
-      animation: sweep 6s 1.2s ease-in-out infinite; pointer-events: none;
-    }
-    @keyframes sweep {
-      0%{left:-100%;opacity:0} 10%{opacity:1} 50%{left:160%;opacity:1} 60%{opacity:0} 100%{left:160%;opacity:0}
-    }
-    .card::after {
-      content: ''; position: absolute; inset: 0; border-radius: 28px;
-      background: radial-gradient(ellipse 55% 30% at 0% 0%, rgba(200,169,74,.12) 0%, transparent 60%),
-                  radial-gradient(ellipse 40% 25% at 100% 100%, rgba(200,169,74,.08) 0%, transparent 60%);
+      content: ''; position: absolute; top: 0; left: 10%; width: 80%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(200,169,74,.5), transparent);
       pointer-events: none;
     }
+    /* shimmer — uses background-position, GPU only */
+    .card::after {
+      content: ''; position: absolute; inset: 0; border-radius: 26px; pointer-events: none;
+      background: linear-gradient(105deg, transparent 38%, rgba(200,169,74,.055) 50%, transparent 62%);
+      background-size: 250% 100%; background-position: -100% 0;
+      animation: shimmer 7s 2s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%,100%{background-position:-100% 0}
+      50%     {background-position: 200% 0}
+    }
 
+    /* corner glow */
+    .corner-glow {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      border-radius: 26px; pointer-events: none;
+      background:
+        radial-gradient(ellipse 50% 28% at 0% 0%, rgba(200,169,74,.1) 0%, transparent 60%),
+        radial-gradient(ellipse 38% 22% at 100% 100%, rgba(200,169,74,.07) 0%, transparent 60%);
+    }
+
+    /* ── Emblem ── */
     .emblem-area {
-      display: flex; flex-direction: column; align-items: center; gap: 14px;
-      margin-bottom: 40px; position: relative; z-index: 1;
-      opacity: 0; animation: fadeIn .8s .5s forwards;
+      display: flex; flex-direction: column; align-items: center; gap: 13px;
+      margin-bottom: 38px; position: relative; z-index: 1;
+      opacity: 0; animation: fIn .7s .5s forwards;
     }
-    .emblem-outer { position: relative; width: 96px; height: 96px; }
-    .emblem-outer::before {
-      content: ''; position: absolute; inset: -6px; border-radius: 50%;
-      border: 1px solid transparent; border-top-color: var(--gold); border-right-color: rgba(200,169,74,.3);
-      animation: spin 8s linear infinite;
+    .emblem-wrap { position: relative; width: 94px; height: 94px; }
+
+    .ring1, .ring2 {
+      position: absolute; border-radius: 50%; border: 1px solid transparent;
+      will-change: transform;
     }
-    .emblem-outer::after {
-      content: ''; position: absolute; inset: -12px; border-radius: 50%;
-      border: 1px solid transparent; border-bottom-color: rgba(200,169,74,.25); border-left-color: rgba(200,169,74,.12);
-      animation: spin 14s linear infinite reverse;
+    .ring1 {
+      inset: -7px;
+      border-top-color: var(--gold);
+      border-right-color: rgba(200,169,74,.28);
+      animation: spin1 9s linear infinite;
     }
-    @keyframes spin { to{transform:rotate(360deg)} }
-    .emblem-glow { position: absolute; inset: -20px; border-radius: 50%; background: radial-gradient(circle, rgba(200,169,74,.18) 0%, transparent 70%); animation: glowBreath 4s ease-in-out infinite; pointer-events: none; z-index: 0; }
-    @keyframes glowBreath { 0%,100%{opacity:.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.12)} }
+    .ring2 {
+      inset: -14px;
+      border-bottom-color: rgba(200,169,74,.22);
+      border-left-color: rgba(200,169,74,.1);
+      animation: spin1 15s linear infinite reverse;
+    }
+    @keyframes spin1 { to{transform:rotate(360deg)} }
+
+    .emblem-glow {
+      position: absolute; inset: -18px; border-radius: 50%; pointer-events: none;
+      background: radial-gradient(circle, rgba(200,169,74,.2) 0%, transparent 68%);
+      animation: glow 4.5s ease-in-out infinite;
+      will-change: opacity, transform;
+    }
+    @keyframes glow { 0%,100%{opacity:.55;transform:scale(1)} 50%{opacity:1;transform:scale(1.1)} }
+
     .emblem-inner {
-      width: 100%; height: 100%; border-radius: 50%;
-      border: 1.5px solid rgba(200,169,74,.45);
-      background: radial-gradient(circle, rgba(200,169,74,.12) 0%, rgba(0,0,0,.3) 100%);
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 0 6px rgba(200,169,74,.06), 0 0 40px rgba(200,169,74,.2), inset 0 1px 0 rgba(255,255,255,.1);
-      overflow: hidden; position: relative; z-index: 1;
+      position: relative; z-index: 2; width: 94px; height: 94px; border-radius: 50%;
+      border: 1.5px solid rgba(200,169,74,.42);
+      background: radial-gradient(circle at 35% 35%, rgba(200,169,74,.13), rgba(0,0,0,.35) 70%);
+      display: flex; align-items: center; justify-content: center; overflow: hidden;
+      box-shadow: 0 0 0 5px rgba(200,169,74,.06), 0 0 36px rgba(200,169,74,.18), inset 0 1px 0 rgba(255,255,255,.1);
     }
-    .emblem-inner img { width: 66px; height: 66px; object-fit: contain; border-radius: 50%; }
-    .school-name { font-family: 'Cormorant Garamond', serif; font-size: .8rem; letter-spacing: .3em; text-transform: uppercase; color: var(--gold); opacity: .75; }
+    .emblem-inner img { width: 64px; height: 64px; object-fit: contain; border-radius: 50%; display: block; }
 
-    .heading-area {
-      text-align: center; margin-bottom: 44px; position: relative; z-index: 1;
-      opacity: 0; animation: fadeIn .8s .65s forwards;
+    .school-label {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: .77rem; letter-spacing: .28em; text-transform: uppercase;
+      color: var(--gold); opacity: .72;
     }
-    h1 { font-family: 'Noto Serif Thai', serif; font-weight: 600; font-size: 1.85rem; color: var(--white); line-height: 1.25; margin-bottom: 10px; }
-    .subtitle { font-weight: 300; font-size: .875rem; color: rgba(245,240,232,.38); line-height: 1.6; }
-    .h-rule { display: flex; align-items: center; gap: 10px; margin: 18px auto 0; width: fit-content; }
-    .h-rule span { display: block; height: 1px; width: 32px; background: linear-gradient(to right, transparent, var(--gold)); }
-    .h-rule span:last-child { background: linear-gradient(to left, transparent, var(--gold)); }
-    .h-rule i { display: block; width: 4px; height: 4px; border-radius: 50%; background: var(--gold); opacity: .7; }
 
-    .form-body { position: relative; z-index: 1; opacity: 0; animation: fadeIn .8s .8s forwards; }
-    .field-label {
-      display: flex; align-items: center; gap: 7px;
-      font-size: .72rem; font-weight: 600; letter-spacing: .14em;
-      color: var(--gold); opacity: .8; text-transform: uppercase; margin-bottom: 10px;
+    /* ── Heading ── */
+    .heading {
+      text-align: center; margin-bottom: 42px; position: relative; z-index: 1;
+      opacity: 0; animation: fIn .7s .65s forwards;
     }
-    .field-label::before { content: ''; display: block; width: 14px; height: 1px; background: var(--gold); opacity: .5; }
-    .input-shell { position: relative; }
-    .input-icon { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: rgba(200,169,74,.5); font-size: 15px; pointer-events: none; transition: color .3s; }
-    .input-shell:focus-within .input-icon { color: rgba(200,169,74,.85); }
+    h1 {
+      font-family: 'Noto Serif Thai', serif; font-weight: 600;
+      font-size: 1.8rem; color: var(--white); line-height: 1.28; margin-bottom: 9px;
+    }
+    .sub {
+      font-weight: 300; font-size: .86rem;
+      color: rgba(245,240,232,.35); line-height: 1.65;
+    }
+    .rule {
+      display: flex; align-items: center; gap: 9px; margin: 16px auto 0; width: fit-content;
+    }
+    .rule span { height: 1px; width: 30px; background: linear-gradient(to right, transparent, var(--gold)); display: block; }
+    .rule span:last-child { background: linear-gradient(to left, transparent, var(--gold)); }
+    .rule i { width: 4px; height: 4px; border-radius: 50%; background: var(--gold); opacity: .65; }
+
+    /* ── Form ── */
+    .form-body { position: relative; z-index: 1; opacity: 0; animation: fIn .7s .8s forwards; }
+
+    .field-lbl {
+      display: flex; align-items: center; gap: 7px; margin-bottom: 9px;
+      font-size: .71rem; font-weight: 600; letter-spacing: .14em;
+      color: var(--gold); opacity: .78; text-transform: uppercase;
+    }
+    .field-lbl::before { content:''; width: 12px; height: 1px; background: var(--gold); opacity: .5; flex-shrink: 0; }
+
+    .inp-wrap { position: relative; }
+    .inp-ico  {
+      position: absolute; left: 17px; top: 50%; transform: translateY(-50%);
+      font-size: 15px; color: rgba(200,169,74,.45); pointer-events: none;
+      transition: color .3s;
+    }
+    .inp-wrap:focus-within .inp-ico { color: rgba(200,169,74,.82); }
+
     input#idcard {
-      width: 100%; padding: 16px 20px 16px 48px;
-      background: rgba(255,255,255,.04); border: 1px solid rgba(200,169,74,.22);
-      border-radius: 14px; color: var(--white);
-      font-family: 'Sarabun', sans-serif; font-size: 1.05rem; letter-spacing: .14em;
+      width: 100%; padding: 15px 18px 15px 46px;
+      background: rgba(255,255,255,.038);
+      border: 1px solid rgba(200,169,74,.2);
+      border-radius: 13px; color: var(--white);
+      font-family: 'Sarabun', sans-serif; font-size: 1.05rem; letter-spacing: .13em;
       text-align: center; outline: none;
-      transition: border-color .35s, background .35s, box-shadow .35s;
+      transition: border-color .3s, background .3s, box-shadow .3s;
       -webkit-appearance: none; appearance: none;
     }
-    input#idcard::placeholder { color: rgba(245,240,232,.18); font-size: .88rem; font-weight: 300; letter-spacing: .06em; }
+    input#idcard::placeholder { color: rgba(245,240,232,.16); font-size: .87rem; font-weight: 300; letter-spacing: .05em; }
     input#idcard:focus {
-      border-color: rgba(200,169,74,.65); background: rgba(200,169,74,.06);
-      box-shadow: 0 0 0 3px rgba(200,169,74,.1), 0 8px 32px rgba(0,0,0,.3);
+      border-color: rgba(200,169,74,.6);
+      background: rgba(200,169,74,.055);
+      box-shadow: 0 0 0 3px rgba(200,169,74,.09), 0 6px 28px rgba(0,0,0,.25);
     }
     .focus-bar {
-      position: absolute; bottom: 0; left: 14px; right: 14px; height: 1px;
-      background: linear-gradient(to right, transparent, var(--gold-lt), transparent);
-      transform: scaleX(0); transition: transform .4s cubic-bezier(.22,1,.36,1); border-radius: 1px;
+      position: absolute; bottom: 0; left: 13px; right: 13px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-lt), transparent);
+      border-radius: 1px; transform: scaleX(0);
+      transition: transform .38s cubic-bezier(.22,1,.36,1);
+      pointer-events: none;
     }
     input#idcard:focus ~ .focus-bar { transform: scaleX(1); }
 
-    .btn-area { margin-top: 30px; }
-    .btn-submit {
-      position: relative; width: 100%; padding: 17px 24px;
-      border: none; border-radius: 14px;
-      background: linear-gradient(135deg, #b8941e 0%, #dbb84a 35%, #c8a94a 65%, #a07820 100%);
-      color: #0b0f1e;
-      font-family: 'Noto Serif Thai', serif; font-size: 1.08rem; font-weight: 700; letter-spacing: .1em;
-      cursor: pointer; overflow: hidden;
-      transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s, opacity .2s;
-      box-shadow: 0 8px 28px rgba(200,169,74,.35), 0 2px 0 rgba(255,255,255,.15) inset, 0 -2px 0 rgba(0,0,0,.2) inset;
-      -webkit-tap-highlight-color: transparent; touch-action: manipulation; min-height: 54px;
+    /* ── Button ── */
+    .btn-area { margin-top: 28px; }
+    .btn {
+      position: relative; width: 100%; min-height: 52px; padding: 15px 22px;
+      border: none; border-radius: 13px; cursor: pointer; overflow: hidden;
+      background: linear-gradient(135deg, #b38e1a 0%, #dab944 40%, #c8a94a 70%, #9c7318 100%);
+      color: #0a0c14;
+      font-family: 'Noto Serif Thai', serif; font-size: 1.06rem; font-weight: 700; letter-spacing: .09em;
+      box-shadow: 0 7px 26px rgba(200,169,74,.32), inset 0 1px 0 rgba(255,255,255,.18), inset 0 -1px 0 rgba(0,0,0,.18);
+      transition: transform .22s cubic-bezier(.22,1,.36,1), box-shadow .22s, opacity .18s;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+      will-change: transform;
     }
-    .btn-submit::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%;
-      background: linear-gradient(to bottom, rgba(255,255,255,.18), transparent);
-      border-radius: 14px 14px 0 0; pointer-events: none;
+    .btn::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 48%;
+      background: linear-gradient(to bottom, rgba(255,255,255,.15), transparent);
+      border-radius: 13px 13px 0 0; pointer-events: none;
     }
-    .btn-submit::after {
-      content: ''; position: absolute; top: 0; left: -120%; width: 80%; height: 100%;
-      background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.28) 50%, transparent 70%);
-      transition: left .5s ease; pointer-events: none;
+    /* shimmer on hover — GPU only */
+    .btn::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.22) 50%, transparent 70%);
+      transform: translateX(-120%);
+      transition: transform .5s ease;
+      pointer-events: none;
     }
-    .btn-submit:hover::after { left: 140%; }
-    .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 16px 48px rgba(200,169,74,.5), 0 2px 0 rgba(255,255,255,.18) inset; }
-    .btn-submit:active { transform: translateY(-1px); }
-    .btn-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; }
-    .btn-inner { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .btn:hover::after { transform: translateX(140%); }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(200,169,74,.44), inset 0 1px 0 rgba(255,255,255,.2); }
+    .btn:active { transform: translateY(0); box-shadow: 0 5px 16px rgba(200,169,74,.28); }
+    .btn:disabled { opacity: .58; cursor: not-allowed; transform: none !important; }
 
+    .btn-inner { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 9px; }
     .spinner {
-      display: none; width: 18px; height: 18px; border-radius: 50%;
-      border: 2.5px solid rgba(11,15,30,.25); border-top-color: #0b0f1e;
-      animation: spin .7s linear infinite; flex-shrink: 0;
+      display: none; width: 17px; height: 17px; border-radius: 50%;
+      border: 2px solid rgba(10,12,20,.22); border-top-color: #0a0c14;
+      animation: spin1 .65s linear infinite; flex-shrink: 0;
     }
     .loading .spinner { display: block; }
     .loading .btn-text { display: none; }
 
-    /* Result */
-    .result-box {
-      margin-top: 20px; border-radius: 14px; padding: 22px;
-      display: none; position: relative; z-index: 1;
-      animation: slideDown .5s cubic-bezier(.22,1,.36,1);
+    /* ── Modal Overlay ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px 20px;
+      opacity: 0; pointer-events: none;
+      transition: opacity .35s ease;
+      /* backdrop blur */
+      background: rgba(4,6,14,.72);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
-    @keyframes slideDown { from{opacity:0;transform:translateY(-12px)} to{opacity:1;transform:translateY(0)} }
-    .result-box.found    { background: rgba(76,175,130,.08); border: 1px solid rgba(76,175,130,.3); }
-    .result-box.notfound { background: rgba(224,85,85,.07);  border: 1px solid rgba(224,85,85,.25); }
-    .result-box.error    { background: rgba(200,169,74,.07); border: 1px solid rgba(200,169,74,.25); }
-    .result-icon  { font-size: 26px; display: block; text-align: center; margin-bottom: 8px; }
-    .result-title { font-family: 'Noto Serif Thai', serif; font-size: 1rem; font-weight: 600; text-align: center; margin-bottom: 5px; }
-    .result-box.found    .result-title { color: var(--green); }
-    .result-box.notfound .result-title { color: var(--red); }
-    .result-box.error    .result-title { color: var(--gold); }
-    .result-sub  { font-size: .8rem; text-align: center; color: rgba(245,240,232,.38); margin-bottom: 16px; line-height: 1.6; white-space: pre-line; }
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
 
-    .btn-open {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      width: 100%; padding: 13px 20px; border-radius: 10px;
-      border: 1px solid rgba(76,175,130,.4); background: rgba(76,175,130,.1);
-      color: var(--green); font-family: 'Noto Serif Thai', serif; font-size: .95rem; font-weight: 600;
-      cursor: pointer; text-decoration: none;
-      transition: background .25s, transform .2s, box-shadow .25s;
+    .modal {
+      position: relative; width: min(420px, 100%);
+      border-radius: 24px; overflow: hidden;
+      transform: translateY(28px) scale(.95);
+      transition: transform .4s cubic-bezier(.16,1,.3,1), opacity .35s ease;
+      opacity: 0;
+    }
+    .modal-overlay.show .modal { transform: translateY(0) scale(1); opacity: 1; }
+
+    /* glass base */
+    .modal-inner {
+      position: relative;
+      background: linear-gradient(155deg, rgba(18,22,38,.96) 0%, rgba(12,15,26,.98) 100%);
+      border: 1px solid rgba(200,169,74,.28);
+      border-radius: 24px; overflow: hidden;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.09),
+        0 40px 120px rgba(0,0,0,.85),
+        0 0 0 1px rgba(0,0,0,.4),
+        0 0 80px rgba(200,169,74,.08);
+      padding: 48px 40px 40px;
+      text-align: center;
+    }
+
+    /* top shimmer line */
+    .modal-inner::before {
+      content: ''; position: absolute; top: 0; left: 12%; width: 76%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(200,169,74,.6), transparent);
+    }
+    /* ambient corner glow */
+    .modal-inner::after {
+      content: ''; position: absolute; inset: 0; border-radius: 24px; pointer-events: none;
+      background:
+        radial-gradient(ellipse 60% 35% at 0% 0%, rgba(200,169,74,.1) 0%, transparent 55%),
+        radial-gradient(ellipse 45% 28% at 100% 100%, rgba(200,169,74,.07) 0%, transparent 55%);
+    }
+
+    /* close button */
+    .modal-close {
+      position: absolute; top: 16px; right: 16px; z-index: 2;
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 1px solid rgba(200,169,74,.2);
+      background: rgba(255,255,255,.04);
+      color: rgba(245,240,232,.45);
+      font-size: 14px; line-height: 1; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .2s, color .2s, border-color .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .modal-close:hover { background: rgba(200,169,74,.12); border-color: rgba(200,169,74,.4); color: var(--gold); }
+
+    /* ── Modal: FOUND ── */
+    .modal-icon-wrap {
+      position: relative; z-index: 1;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 24px;
+    }
+    .modal-icon-ring {
+      width: 80px; height: 80px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .modal-icon-ring::before {
+      content: ''; position: absolute; inset: -5px; border-radius: 50%;
+      border: 1.5px solid rgba(76,175,130,.35);
+      animation: spin1 8s linear infinite;
+    }
+    .modal-icon-ring::after {
+      content: ''; position: absolute; inset: -11px; border-radius: 50%;
+      border: 1px solid rgba(76,175,130,.15);
+      animation: spin1 14s linear infinite reverse;
+    }
+    .modal-icon-ring.found-ring {
+      background: radial-gradient(circle, rgba(76,175,130,.18) 0%, rgba(76,175,130,.05) 60%, transparent 100%);
+      box-shadow: 0 0 0 8px rgba(76,175,130,.07), 0 0 40px rgba(76,175,130,.2);
+    }
+    .modal-icon-ring.notfound-ring {
+      background: radial-gradient(circle, rgba(224,85,85,.15) 0%, rgba(224,85,85,.04) 60%, transparent 100%);
+      box-shadow: 0 0 0 8px rgba(224,85,85,.06), 0 0 40px rgba(224,85,85,.15);
+    }
+    .modal-icon-ring.notfound-ring::before { border-color: rgba(224,85,85,.3); }
+    .modal-icon-ring.notfound-ring::after  { border-color: rgba(224,85,85,.12); }
+    .modal-icon-ring.error-ring {
+      background: radial-gradient(circle, rgba(200,169,74,.15) 0%, rgba(200,169,74,.04) 60%, transparent 100%);
+      box-shadow: 0 0 0 8px rgba(200,169,74,.06), 0 0 40px rgba(200,169,74,.15);
+    }
+    .modal-icon-ring.error-ring::before { border-color: rgba(200,169,74,.3); }
+    .modal-icon-ring.error-ring::after  { border-color: rgba(200,169,74,.12); }
+    .modal-emoji { font-size: 36px; line-height: 1; position: relative; z-index: 1; }
+
+    .modal-title {
+      font-family: 'Noto Serif Thai', serif; font-weight: 700;
+      font-size: 1.25rem; margin-bottom: 8px;
+      position: relative; z-index: 1;
+    }
+    .found-color    { color: var(--green); }
+    .notfound-color { color: var(--red); }
+    .error-color    { color: var(--gold); }
+
+    .modal-id-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(200,169,74,.08); border: 1px solid rgba(200,169,74,.2);
+      border-radius: 8px; padding: 7px 16px; margin-bottom: 18px;
+      position: relative; z-index: 1;
+    }
+    .modal-id-badge span { font-size: .75rem; color: rgba(200,169,74,.6); letter-spacing: .1em; }
+    .modal-id-badge strong { font-family: 'Sarabun', sans-serif; font-size: .95rem; font-weight: 600; color: var(--gold); letter-spacing: .12em; }
+
+    .modal-sub {
+      font-size: .82rem; color: rgba(245,240,232,.35);
+      line-height: 1.65; margin-bottom: 28px;
+      position: relative; z-index: 1; white-space: pre-line;
+    }
+    .modal-sub:empty { margin-bottom: 20px; }
+
+    /* deco rule inside modal */
+    .modal-rule {
+      display: flex; align-items: center; gap: 8px; margin: 0 auto 24px;
+      width: fit-content; position: relative; z-index: 1;
+    }
+    .modal-rule span { height: 1px; width: 24px; background: linear-gradient(to right, transparent, rgba(200,169,74,.35)); display: block; }
+    .modal-rule span:last-child { background: linear-gradient(to left, transparent, rgba(200,169,74,.35)); }
+    .modal-rule i { width: 3px; height: 3px; border-radius: 50%; background: rgba(200,169,74,.5); }
+
+    /* open PDF button */
+    .btn-open-pdf {
+      position: relative; display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 15px 22px; border-radius: 13px; border: none;
+      background: linear-gradient(135deg, #1e6e4a 0%, #2a9460 40%, #24825a 70%, #1a5e40 100%);
+      color: #e8fff5;
+      font-family: 'Noto Serif Thai', serif; font-size: 1.02rem; font-weight: 700; letter-spacing: .07em;
+      text-decoration: none; cursor: pointer; overflow: hidden;
+      box-shadow: 0 8px 28px rgba(42,148,96,.3), inset 0 1px 0 rgba(255,255,255,.15);
+      transition: transform .22s cubic-bezier(.22,1,.36,1), box-shadow .22s;
       -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+      position: relative; z-index: 1;
     }
-    .btn-open:hover { background: rgba(76,175,130,.18); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(76,175,130,.15); }
-    .btn-open:active { transform: translateY(0); }
+    .btn-open-pdf::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 48%;
+      background: linear-gradient(to bottom, rgba(255,255,255,.14), transparent);
+      border-radius: 13px 13px 0 0; pointer-events: none;
+    }
+    .btn-open-pdf::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.18) 50%, transparent 70%);
+      transform: translateX(-120%); transition: transform .5s ease; pointer-events: none;
+    }
+    .btn-open-pdf:hover::after { transform: translateX(140%); }
+    .btn-open-pdf:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(42,148,96,.42); }
+    .btn-open-pdf:active { transform: translateY(0); }
 
-    .footer-badge {
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-      margin-top: 36px; position: relative; z-index: 1;
-      opacity: 0; animation: fadeIn .8s 1s forwards;
+    .btn-close-modal {
+      display: block; width: 100%; margin-top: 12px; padding: 11px;
+      border: 1px solid rgba(200,169,74,.15); border-radius: 10px;
+      background: transparent; color: rgba(245,240,232,.3);
+      font-family: 'Sarabun', sans-serif; font-size: .82rem; letter-spacing: .06em;
+      cursor: pointer; transition: background .2s, color .2s, border-color .2s;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+      position: relative; z-index: 1;
     }
-    .footer-badge::before, .footer-badge::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, transparent, rgba(200,169,74,.2)); }
-    .footer-badge::after { background: linear-gradient(to left, transparent, rgba(200,169,74,.2)); }
-    .badge-text { font-family: 'Cormorant Garamond', serif; font-size: .68rem; letter-spacing: .18em; color: rgba(200,169,74,.4); text-transform: uppercase; white-space: nowrap; }
-    .footer-note { text-align: center; font-size: .72rem; color: rgba(245,240,232,.2); line-height: 1.7; margin-top: 16px; font-weight: 300; position: relative; z-index: 1; opacity: 0; animation: fadeIn .8s 1.1s forwards; }
+    .btn-close-modal:hover { background: rgba(255,255,255,.04); color: rgba(245,240,232,.55); border-color: rgba(200,169,74,.28); }
+
+    /* ── Footer ── */
+    .footer-rule {
+      display: flex; align-items: center; gap: 10px; margin-top: 34px;
+      position: relative; z-index: 1; opacity: 0; animation: fIn .7s 1s forwards;
+    }
+    .footer-rule::before, .footer-rule::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, transparent, rgba(200,169,74,.18)); }
+    .footer-rule::after { background: linear-gradient(to left, transparent, rgba(200,169,74,.18)); }
+    .footer-rule span { font-family: 'Cormorant Garamond', serif; font-size: .66rem; letter-spacing: .18em; color: rgba(200,169,74,.38); text-transform: uppercase; white-space: nowrap; }
+    .footer-note { text-align: center; font-size: .71rem; color: rgba(245,240,232,.18); line-height: 1.7; margin-top: 13px; font-weight: 300; position: relative; z-index: 1; opacity: 0; animation: fIn .7s 1.1s forwards; }
 
     @keyframes shake {
-      0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)}
-      60%{transform:translateX(-5px)} 80%{transform:translateX(5px)}
+      0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px)} 40%{transform:translateX(7px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)}
     }
 
     @media (max-width: 480px) {
-      body { padding: 30px 16px; }
-      .card { padding: 40px 24px 36px; border-radius: 22px; }
-      h1 { font-size: 1.45rem; }
-      .emblem-outer { width: 80px; height: 80px; }
+      body { padding: 28px 15px; }
+      .card { padding: 38px 22px 34px; border-radius: 20px; }
+      h1 { font-size: 1.42rem; }
+      .sub { font-size: .82rem; }
+      .emblem-wrap { width: 80px; height: 80px; }
+      .emblem-inner { width: 80px; height: 80px; }
       .emblem-inner img { width: 54px; height: 54px; }
       .emblem-area { margin-bottom: 30px; }
-      .heading-area { margin-bottom: 32px; }
+      .heading { margin-bottom: 32px; }
       input#idcard { font-size: .95rem; }
-      .btn-submit { font-size: 1rem; }
-      .deco-top { margin-bottom: 28px; }
+      .btn { font-size: .98rem; }
+      .deco { margin-bottom: 26px; }
+      .orb1 { width: 280px; height: 280px; }
+      .orb2 { width: 220px; height: 220px; }
     }
     @media (max-width: 360px) {
-      .card { padding: 32px 18px 28px; }
+      .card { padding: 30px 16px 26px; }
       h1 { font-size: 1.2rem; }
     }
   </style>
 </head>
 <body>
 
-<canvas id="bg"></canvas>
-<div class="grain"></div>
-<div class="sp"></div><div class="sp"></div><div class="sp"></div>
-<div class="sp"></div><div class="sp"></div><div class="sp"></div><div class="sp"></div>
+  <div class="bg"></div>
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+  <div class="sp"></div><div class="sp"></div><div class="sp"></div>
+  <div class="sp"></div><div class="sp"></div><div class="sp"></div><div class="sp"></div>
 
-<div class="wrapper">
-  <div class="deco-top">
-    <span class="ln"></span><span class="dm"></span><span class="ln r"></span>
-  </div>
+  <div class="wrapper">
+    <div class="deco">
+      <span class="ln"></span><span class="dm"></span><span class="ln r"></span>
+    </div>
 
-  <div class="card">
-    <!-- Logo -->
-    <div class="emblem-area">
-      <div class="emblem-outer">
-        <div class="emblem-glow"></div>
-        <div class="emblem-inner">
-          <img src="https://lh3.googleusercontent.com/d/1OEM86EbGKlN7vQyJnz3fjyKXTcFTQCCu" alt="school logo"
-               onerror="this.style.display='none';this.parentElement.innerHTML+='<span style=\'font-size:44px\'>🏫</span>'"/>
+    <div class="card">
+      <div class="corner-glow"></div>
+
+      <!-- Emblem -->
+      <div class="emblem-area">
+        <div class="emblem-wrap">
+          <div class="emblem-glow"></div>
+          <div class="ring1"></div>
+          <div class="ring2"></div>
+          <div class="emblem-inner">
+            <img src="https://lh3.googleusercontent.com/d/1OEM86EbGKlN7vQyJnz3fjyKXTcFTQCCu" alt="school logo"
+                 onerror="this.style.display='none';this.parentElement.innerHTML+='<span style=\'font-size:42px;line-height:1\'>🏫</span>'"/>
+          </div>
+        </div>
+        <span class="school-label">โรงเรียนวัดบางขุด(อุ่นพิทยาคาร)</span>
+      </div>
+
+      <!-- Heading -->
+      <div class="heading">
+        <h1>ระบบดูผลการเรียนออนไลน์</h1>
+        <p class="sub">กรอกเลขบัตรประจำตัวประชาชน 13 หลัก<br/>เพื่อดึงเอกสารของนักเรียน</p>
+        <div class="rule"><span></span><i></i><span></span></div>
+      </div>
+
+      <!-- Form -->
+      <div class="form-body">
+        <label class="field-lbl" for="idcard">เลขบัตรประจำตัวประชาชน</label>
+        <div class="inp-wrap">
+          <span class="inp-ico">🪪</span>
+          <input id="idcard" type="text" inputmode="numeric" maxlength="13"
+                 placeholder="กรอกเลข 13 หลัก" autocomplete="off"/>
+          <div class="focus-bar"></div>
+        </div>
+
+        <div class="btn-area">
+          <button type="button" class="btn" id="searchBtn" onclick="doSearch()">
+            <span class="btn-inner">
+              <div class="spinner"></div>
+              <span class="btn-text" style="display:flex;align-items:center;gap:9px">
+                <span>🔍</span><span>ค้นหาข้อมูล</span>
+              </span>
+            </span>
+          </button>
         </div>
       </div>
-      <span class="school-name">โรงเรียนวัดบางขุด(อุ่นพิทยาคาร)</span>
+
+      <div class="footer-rule"><span>โรงเรียนรหัส · 74010051</span></div>
+      <p class="footer-note">ระบบค้นหาเอกสารนักเรียนผ่าน Google Drive</p>
     </div>
+  </div>
 
-    <!-- Heading -->
-    <div class="heading-area">
-      <h1>ดูผลการเรียนออนไลน์</h1>
-      <p class="subtitle">กรอกเลขบัตรประจำตัวประชาชน 13 หลัก<br/>เพื่อดึงเอกสารของนักเรียน</p>
-      <div class="h-rule"><span></span><i></i><span></span></div>
-    </div>
+  <!-- ── POPUP MODAL ── -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+    <div class="modal" id="modal">
+      <div class="modal-inner">
+        <button class="modal-close" onclick="closeModal()" aria-label="ปิด">✕</button>
 
-    <!-- Form -->
-    <div class="form-body">
-      <label class="field-label" for="idcard">เลขบัตรประจำตัวประชาชน</label>
-      <div class="input-shell">
-        <span class="input-icon">🪪</span>
-        <input id="idcard" type="text" inputmode="numeric" maxlength="13"
-               placeholder="กรอกเลข 13 หลัก" autocomplete="off"/>
-        <div class="focus-bar"></div>
-      </div>
+        <div class="modal-icon-wrap">
+          <div class="modal-icon-ring" id="mRing">
+            <span class="modal-emoji" id="mEmoji"></span>
+          </div>
+        </div>
 
-      <div class="btn-area">
-        <button type="button" class="btn-submit" id="searchBtn" onclick="searchStudent()">
-          <span class="btn-inner">
-            <div class="spinner"></div>
-            <span class="btn-text" style="display:flex;align-items:center;gap:10px">
-              <span>🔍</span><span>ค้นหาข้อมูล</span>
-            </span>
-          </span>
-        </button>
-      </div>
+        <div class="modal-title" id="mTitle"></div>
 
-      <!-- Result -->
-      <div class="result-box" id="resultBox">
-        <span class="result-icon" id="resultIcon"></span>
-        <div class="result-title" id="resultTitle"></div>
-        <div class="result-sub"   id="resultSub"></div>
-        <a class="btn-open" id="resultLink" href="#" target="_blank" style="display:none">
+        <div class="modal-id-badge" id="mBadge" style="display:none">
+          <span>เลขบัตร</span>
+          <strong id="mIdNum"></strong>
+        </div>
+
+        <div class="modal-rule"><span></span><i></i><span></span></div>
+
+        <div class="modal-sub" id="mSub"></div>
+
+        <a class="btn-open-pdf" id="mLink" href="#" target="_blank" style="display:none">
           <span>📄</span><span>เปิดเอกสาร PDF</span>
         </a>
+
+        <button class="btn-close-modal" onclick="closeModal()">ปิดหน้าต่างนี้</button>
       </div>
     </div>
-
-    <div class="footer-badge">
-      <span class="badge-text">โรงเรียนรหัส · 74010051</span>
-    </div>
-    <p class="footer-note">ระบบค้นหาเอกสารนักเรียนผ่าน Google Drive</p>
   </div>
-</div>
 
-<script>
-/* ── CONFIG ── */
-const API_KEY   = 'AIzaSyBul4D4GpWa-Sj6Uyxe5JO8JAfv-MTUxbQ';
-const FOLDER_ID = '1aXJLvyx1DeEMcbVkkIotI-cLzAb2fQu-';
+  <script>
+    const API_KEY   = 'AIzaSyBul4D4GpWa-Sj6Uyxe5JO8JAfv-MTUxbQ';
+    const FOLDER_ID = '1aXJLvyx1DeEMcbVkkIotI-cLzAb2fQu-';
 
-/* ── SEARCH ── */
-async function searchStudent() {
-  const idcard = document.getElementById('idcard').value.replace(/\D/g,'');
-  const btn = document.getElementById('searchBtn');
-  const box = document.getElementById('resultBox');
+    async function doSearch() {
+      const idcard = document.getElementById('idcard').value.replace(/\D/g,'');
+      const btn    = document.getElementById('searchBtn');
 
-  if (idcard.length !== 13) {
-    showResult('error','⚠️','กรุณากรอกเลข 13 หลักให้ครบถ้วน','');
-    shakeInput(); return;
-  }
+      if (idcard.length !== 13) {
+        showModal('error','⚠️','กรุณากรอกเลข 13 หลักให้ครบถ้วน','','');
+        const inp = document.getElementById('idcard');
+        inp.style.animation = 'none'; inp.offsetHeight;
+        inp.style.animation = 'shake .4s ease';
+        return;
+      }
 
-  btn.disabled = true;
-  btn.classList.add('loading');
-  box.style.display = 'none';
+      btn.disabled = true;
+      btn.classList.add('loading');
 
-  try {
-    // Try both with and without .pdf extension
-    const q = `'${FOLDER_ID}' in parents and trashed=false and (name='${idcard}.pdf' or name='${idcard}')`;
-    const url = `https://www.googleapis.com/drive/v3/files`
-      + `?q=${encodeURIComponent(q)}`
-      + `&key=${encodeURIComponent(API_KEY)}`
-      + `&fields=files(id,name,mimeType)`;
+      try {
+        const q   = `'${FOLDER_ID}' in parents and trashed=false and (name='${idcard}.pdf' or name='${idcard}')`;
+        const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&key=${encodeURIComponent(API_KEY)}&fields=files(id,name)`;
+        const res  = await fetch(url);
+        const data = await res.json();
 
-    const res  = await fetch(url);
-    const data = await res.json();
-
-    if (data.error) {
-      const msg = data.error.message || 'ไม่ทราบสาเหตุ';
-      showResult('error','⚙️','ไม่สามารถเชื่อมต่อได้', msg); return;
-    }
-
-    if (data.files && data.files.length > 0) {
-      const fileId = data.files[0].id;
-      const link   = `https://drive.google.com/file/d/${fileId}/view`;
-      showResult('found','✅','พบเอกสารของนักเรียน',`เลขบัตร: ${idcard}`, link);
-    } else {
-      showResult('notfound','🔎','ไม่พบข้อมูลในระบบ',`ไม่พบเอกสารสำหรับเลขบัตร\n${idcard}`);
-    }
-  } catch(err) {
-    showResult('error','⚙️','เกิดข้อผิดพลาด','กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต');
-  } finally {
-    btn.disabled = false;
-    btn.classList.remove('loading');
-  }
-}
-
-function showResult(type, icon, title, sub, link) {
-  const box   = document.getElementById('resultBox');
-  box.className = 'result-box ' + type;
-  document.getElementById('resultIcon').textContent  = icon;
-  document.getElementById('resultTitle').textContent = title;
-  document.getElementById('resultSub').textContent   = sub;
-  const linkEl = document.getElementById('resultLink');
-  if (link) { linkEl.href = link; linkEl.style.display = 'flex'; }
-  else       { linkEl.style.display = 'none'; }
-  box.style.display = 'block';
-}
-
-function shakeInput() {
-  const inp = document.getElementById('idcard');
-  inp.style.animation = 'none';
-  inp.offsetHeight;
-  inp.style.animation = 'shake .4s ease';
-}
-
-document.getElementById('idcard').addEventListener('input', function(){
-  this.value = this.value.replace(/\D/g,'').slice(0,13);
-});
-document.getElementById('idcard').addEventListener('keydown', function(e){
-  if (e.key === 'Enter') searchStudent();
-});
-
-/* ── CANVAS BG ── */
-(function(){
-  const canvas = document.getElementById('bg');
-  const ctx = canvas.getContext('2d');
-  let W, H, dots = [], time = 0;
-  const G = 'rgba(200,169,74,', B = 'rgba(30,60,120,';
-  function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
-  resize();
-  window.addEventListener('resize',()=>{ resize(); init(); });
-  function init(){
-    dots=[];
-    const n=Math.min(Math.floor((W*H)/22000),55);
-    for(let i=0;i<n;i++) dots.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.4+0.4,vx:(Math.random()-.5)*.18,vy:(Math.random()-.5)*.18,phase:Math.random()*Math.PI*2});
-  }
-  init();
-  function draw(){
-    ctx.clearRect(0,0,W,H);
-    const bg=ctx.createRadialGradient(W*.3,H*.25,0,W*.5,H*.5,Math.max(W,H)*.85);
-    bg.addColorStop(0,'#101520'); bg.addColorStop(.45,'#090d18'); bg.addColorStop(1,'#060810');
-    ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
-    const g1=ctx.createRadialGradient(W*.15,H*.1,0,W*.15,H*.1,W*.5);
-    g1.addColorStop(0,G+'.07)'); g1.addColorStop(1,'transparent');
-    ctx.fillStyle=g1; ctx.fillRect(0,0,W,H);
-    const g2=ctx.createRadialGradient(W*.88,H*.9,0,W*.88,H*.9,W*.4);
-    g2.addColorStop(0,B+'.12)'); g2.addColorStop(1,'transparent');
-    ctx.fillStyle=g2; ctx.fillRect(0,0,W,H);
-    time+=.008;
-    dots.forEach(d=>{
-      d.x+=d.vx; d.y+=d.vy;
-      if(d.x<0)d.x=W; if(d.x>W)d.x=0; if(d.y<0)d.y=H; if(d.y>H)d.y=0;
-      const a=(.3+.35*Math.sin(time+d.phase))*.9;
-      ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
-      ctx.fillStyle=G+a+')'; ctx.fill();
-    });
-    for(let i=0;i<dots.length;i++) for(let j=i+1;j<dots.length;j++){
-      const dx=dots[i].x-dots[j].x,dy=dots[i].y-dots[j].y,dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<110){
-        ctx.beginPath(); ctx.moveTo(dots[i].x,dots[i].y); ctx.lineTo(dots[j].x,dots[j].y);
-        ctx.strokeStyle=G+((.12*(1-dist/110))).toFixed(3)+')'; ctx.lineWidth=.5; ctx.stroke();
+        if (data.error) {
+          showModal('error','⚙️','เชื่อมต่อไม่ได้', data.error.message || '', '');
+          return;
+        }
+        if (data.files && data.files.length > 0) {
+          const link = `https://drive.google.com/file/d/${data.files[0].id}/view`;
+          showModal('found','✅','พบเอกสารของนักเรียน','พบไฟล์ PDF ในระบบแล้ว\nกดปุ่มด้านล่างเพื่อเปิดดูเอกสาร', link, idcard);
+        } else {
+          showModal('notfound','🔎','ไม่พบข้อมูลในระบบ','ไม่พบเอกสารสำหรับเลขบัตรนี้\nกรุณาตรวจสอบเลขบัตรและลองใหม่อีกครั้ง', '', idcard);
+        }
+      } catch(e) {
+        showModal('error','⚙️','เกิดข้อผิดพลาด','กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต', '');
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
       }
     }
-    requestAnimationFrame(draw);
-  }
-  draw();
-})();
-</script>
+
+    function showModal(type, emoji, title, sub, link, idcard) {
+      const ringClass = { found:'found-ring', notfound:'notfound-ring', error:'error-ring' };
+      const titleClass = { found:'found-color', notfound:'notfound-color', error:'error-color' };
+
+      document.getElementById('mRing').className  = 'modal-icon-ring ' + (ringClass[type] || 'error-ring');
+      document.getElementById('mEmoji').textContent = emoji;
+      document.getElementById('mTitle').textContent = title;
+      document.getElementById('mTitle').className  = 'modal-title ' + (titleClass[type] || '');
+      document.getElementById('mSub').textContent  = sub || '';
+
+      const badge = document.getElementById('mBadge');
+      if (idcard) {
+        document.getElementById('mIdNum').textContent = idcard;
+        badge.style.display = 'inline-flex';
+      } else {
+        badge.style.display = 'none';
+      }
+
+      const lk = document.getElementById('mLink');
+      if (link) { lk.href = link; lk.style.display = 'flex'; }
+      else       { lk.style.display = 'none'; }
+
+      // show overlay
+      const overlay = document.getElementById('modalOverlay');
+      overlay.classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      const overlay = document.getElementById('modalOverlay');
+      overlay.classList.remove('show');
+      document.body.style.overflow = '';
+    }
+
+    function closeModalOutside(e) {
+      if (e.target === document.getElementById('modalOverlay')) closeModal();
+    }
+
+    // close on Escape
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape') closeModal();
+    });
+
+    document.getElementById('idcard').addEventListener('input', function(){
+      this.value = this.value.replace(/\D/g,'').slice(0,13);
+    });
+    document.getElementById('idcard').addEventListener('keydown', function(e){
+      if (e.key === 'Enter') doSearch();
+    });
+  </script>
 </body>
 </html>
+
